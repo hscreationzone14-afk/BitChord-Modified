@@ -24,9 +24,7 @@ jobs:
           fi
 
           echo "Using: $ZIP_FILE"
-
           unzip -q "$ZIP_FILE" -d source
-
           test -f source/BitChord-main/gradlew
 
       - name: Set up JDK 17
@@ -41,7 +39,6 @@ jobs:
       - name: Install Android SDK
         run: |
           yes | sdkmanager --licenses || true
-
           sdkmanager \
             "platform-tools" \
             "platforms;android-36" \
@@ -76,9 +73,7 @@ jobs:
           fi
 
           echo "APK=$APK" >> "$GITHUB_ENV"
-
-          echo "Found APK:"
-          echo "$APK"
+          echo "Found APK: $APK"
 
       - name: Create signing key
         run: |
@@ -126,70 +121,4 @@ jobs:
         with:
           name: BitChord-Android16-SIGNED
           path: ${{ runner.temp }}/BitChord-universal-signed.apk
-          if-no-files-found: error
-
-on:
-  workflow_dispatch:
-  push:
-    paths:
-      - "*.zip"
-      - ".github/workflows/build-apk.yml"
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Find and extract BitChord source
-        shell: bash
-        run: |
-          set -e
-
-          ZIP_FILE=$(find . -maxdepth 1 -type f -name "*.zip" | head -n 1)
-
-          if [ -z "$ZIP_FILE" ]; then
-            echo "ERROR: BitChord ZIP not found"
-            exit 1
-          fi
-
-          echo "Using: $ZIP_FILE"
-
-          unzip -q "$ZIP_FILE" -d ./source
-
-          test -f ./source/BitChord-main/gradlew
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v4
-
-      - name: Install Android SDK packages
-        run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" "cmake;3.22.1"
-
-      - name: Make Gradle executable
-        working-directory: ./source/BitChord-main
-        run: chmod +x gradlew
-
-      - name: Build BitChord
-        working-directory: ./source/BitChord-main
-        run: ./gradlew --no-daemon --stacktrace :app:assembleProdRelease
-
-      - name: Show generated APK
-        run: |
-          find ./source/BitChord-main/app/build/outputs/apk -type f -name "*.apk" -print
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: BitChord-Modified-APK
-          path: ./source/BitChord-main/app/build/outputs/apk/**/*.apk
           if-no-files-found: error
