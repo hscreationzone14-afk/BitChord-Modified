@@ -126,7 +126,7 @@ jobs:
         with:
           name: BitChord-Android16-SIGNED
           path: ${{ runner.temp }}/BitChord-universal-signed.apk
-          if-no-files-found: errorname: Build BitChord APK
+          if-no-files-found: error
 
 on:
   workflow_dispatch:
